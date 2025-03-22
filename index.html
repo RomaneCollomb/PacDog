@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PacDog</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f9f9f9;
+        }
+        #gameArea {
+            position: relative;
+            width: 800px;
+            height: 600px;
+            background-color: #f5f5dc; /* couleur crème */
+            border: 2px solid #000;
+            margin: 20px auto;
+        }
+        #dog {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            background-image: url('dog.png');
+            background-size: cover;
+            border-radius: 50%;
+        }
+        .bone {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background-image: url('bone.png');
+            background-size: cover;
+            border-radius: 50%;
+        }
+        .wall {
+            position: absolute;
+            background-color: #333;
+        }
+        #score {
+            text-align: center;
+            font-size: 20px;
+            color: #000;
+        }
+        #timer {
+            text-align: center;
+            font-size: 20px;
+            color: #000;
+        }
+        #instructions {
+            text-align: center;
+            font-size: 18px;
+            color: #000;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="instructions">Déplacez le chien pour attraper le maximum d'os !</div>
+    <div id="score">Score: 0</div>
+    <div id="timer">Temps restant: 30s</div>
+    <div id="gameArea">
+        <div id="dog"></div>
+    </div>
+
+    <script src="pacdog.js"></script>
+</body>
+</html>
