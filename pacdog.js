@@ -12,6 +12,7 @@ const bones = [];
 let walls = [];
 let timer = 30;
 let gameStarted = false;
+let timerInterval; // Variable pour stocker l'intervalle du chronomètre
 
 // Créer des os à manger
 function createBones() {
@@ -25,29 +26,24 @@ function createBones() {
     }
 }
 
-// Créer des murs (labyrinthe)
+// Créer des murs (labyrinthe) aléatoires
 function createWalls() {
-    const wall1 = document.createElement('div');
-    wall1.classList.add('wall');
-    wall1.style.width = '200px';
-    wall1.style.height = '20px';
-    wall1.style.top = '100px';
-    wall1.style.left = '100px';
-    gameArea.appendChild(wall1);
-
-    const wall2 = document.createElement('div');
-    wall2.classList.add('wall');
-    wall2.style.width = '20px';
-    wall2.style.height = '200px';
-    wall2.style.top = '200px';
-    wall2.style.left = '300px';
-    gameArea.appendChild(wall2);
-
-    walls.push(wall1, wall2);
+    const numberOfWalls = 10; // Nombre de murs
+    const wallThickness = 20; // Épaisseur des murs
+    for (let i = 0; i < numberOfWalls; i++) {
+        const wall = document.createElement('div');
+        wall.classList.add('wall');
+        wall.style.width = `${Math.random() * 200 + 50}px`; // Largeur aléatoire
+        wall.style.height = `${wallThickness}px`; // Hauteur fixe (épaisseur)
+        wall.style.left = `${Math.random() * (gameArea.offsetWidth - parseInt(wall.style.width))}px`;
+        wall.style.top = `${Math.random() * (gameArea.offsetHeight - parseInt(wall.style.height))}px`;
+        gameArea.appendChild(wall);
+        walls.push(wall);
+    }
 }
 
-// Vérifier si le chien touche un mur
-function checkWallCollision() {
+// Vérifier si le chien touche un mur ou une bordure
+function checkCollision() {
     const dogRect = dog.getBoundingClientRect();
 
     // Vérification des collisions avec les murs
@@ -62,6 +58,12 @@ function checkWallCollision() {
             // Collision avec un mur
             return true;
         }
+    }
+
+    // Vérification des collisions avec les bordures
+    if (dogPosition.x < 0 || dogPosition.x > gameArea.offsetWidth - dogSize || dogPosition.y < 0 || dogPosition.y > gameArea.offsetHeight - dogSize) {
+        // Collision avec une bordure
+        return true;
     }
 
     return false;
@@ -104,13 +106,12 @@ function checkCollisions() {
 // Déplacer le chien
 document.addEventListener('keydown', (event) => {
     if (!gameStarted) {
-        // Commencer le jeu dès qu'une touche de direction est appuyée
-        if (event.key === 'ArrowUp' || event.key === 'ArrowDown' || event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+        // Commencer le jeu dès que la touche espace est appuyée
+        if (event.code === 'Space') {
             startGame();
         }
+        return; // Ne pas bouger tant que le jeu n'est pas commencé
     }
-
-    if (!gameStarted) return; // Ne pas bouger tant que le jeu n'est pas commencé
 
     const step = 10; // Distance parcourue par pression de touche
     const initialPosition = { ...dogPosition }; // Position initiale avant déplacement
@@ -125,11 +126,10 @@ document.addEventListener('keydown', (event) => {
         dogPosition.x = Math.min(dogPosition.x + step, gameArea.offsetWidth - dogSize);
     }
 
-    // Vérifier la collision avec les murs
-    if (checkWallCollision()) {
+    // Vérifier la collision avec les murs ou les bordures
+    if (checkCollision()) {
         dogPosition = initialPosition; // Annuler le déplacement si collision
-        instructionsElement.textContent = 'Le chien est mort ! Vous avez heurté un mur.';
-        gameStarted = false; // Arrêter le jeu si collision
+        gameOver(); // Afficher "Game Over" et le score
         return;
     }
 
@@ -140,14 +140,14 @@ document.addEventListener('keydown', (event) => {
 // Chronomètre
 function startTimer() {
     gameStarted = true;
-    const interval = setInterval(() => {
+    timerInterval = setInterval(() => {
         timer--;
         timerElement.textContent = `Temps restant: ${timer}s`;
 
         if (timer <= 0) {
-            clearInterval(interval);
+            clearInterval(timerInterval);
             gameStarted = false;
-            instructionsElement.textContent = `Le jeu est terminé ! Vous avez attrapé ${score} os.`;
+            instructionsElement.innerHTML = `<span style="font-size: 3em; color: red;">Le jeu est terminé ! </span>`
         }
     }, 1000);
 }
@@ -159,8 +159,25 @@ function startGame() {
     scoreElement.textContent = `Score: ${score}`;
     timer = 30;
     timerElement.textContent = `Temps restant: 30s`;
+
+    // Supprimer les anciens os et murs
+    bones.forEach(bone => bone.remove());
+    walls.forEach(wall => wall.remove());
+    bones.length = 0;
+    walls.length = 0;
+
     createBones();
     createWalls();
     updateDogPosition();
     startTimer();
 }
+
+// Game Over
+function gameOver() {
+    clearInterval(timerInterval); // Arrêter le chronomètre
+    gameStarted = false;
+    instructionsElement.innerHTML = `<span style="font-size: 3em; color: red;">Game Over</span><br>Vous avez heurté un mur !`;
+}
+
+// Afficher les instructions initiales
+instructionsElement.textContent = 'Appuyez sur la touche espace pour commencer';
